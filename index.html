@@ -50,11 +50,15 @@
       margin: 0 0 0.35rem;
     }
     p { margin: 0; }
-    .mark {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--cyan);
+    .city {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0.25rem 0 0.5rem;
+    }
+    .lede {
+      margin: -0.35rem 0 0;
+      max-width: 16rem;
     }
     .why { margin: 0 0 0.45rem; }
     .meta {
@@ -80,8 +84,36 @@
       cursor: pointer;
     }
     .btn:active { transform: scale(0.98); }
+    .btn:disabled {
+      opacity: 0.38;
+      cursor: default;
+      transform: none;
+    }
     .btn-primary { background: var(--red); color: var(--bg); }
     .btn-ink { background: var(--ink); color: var(--bg); }
+    .group { margin: 0 0 1.25rem; }
+    .group p {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.62;
+      margin: 0 0 0.5rem;
+    }
+    .pills { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .pills button {
+      border: 1.5px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 0.55rem 0.9rem;
+      font: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .pills button[aria-pressed="true"] {
+      background: var(--cyan);
+      border-color: var(--cyan);
+    }
     .moods { display: grid; gap: 0.7rem; }
     .moods button {
       text-align: left;
@@ -119,19 +151,27 @@
       text-underline-offset: 0.22em;
     }
     .quiet {
-      display: block;
-      margin: 2rem auto 0;
+      display: inline-block;
       opacity: 0.5;
       font-size: 0.95rem;
       text-decoration: underline;
       text-underline-offset: 0.25em;
     }
+    .escapes {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .solo-quiet { display: block; margin: 2rem auto 0; }
     #screen-door {
       min-height: calc(100svh - 4.5rem);
       display: flex;
       flex-direction: column;
     }
-    #screen-door h1 { margin-top: auto; }
+    #screen-door h1 { margin: auto 0 0.75rem; }
+    #screen-door .btn { margin-top: 1.75rem; }
+    #screen-curate .btn { margin-top: 0.6rem; }
     .hidden { display: none !important; }
     :focus-visible {
       outline: 2px solid var(--cyan);
@@ -142,32 +182,74 @@
 <body>
   <div class="shell">
     <section id="screen-door">
-      <p class="mark" aria-hidden="true"></p>
-      <h1>A pocket of the city.</h1>
-      <button type="button" class="btn btn-primary" id="begin">Begin</button>
+      <svg class="city" viewBox="0 0 360 170" fill="none" role="img" aria-label="St. Pete, sun over a low skyline and the water">
+        <circle cx="292" cy="40" r="14" fill="#F5A791"/>
+        <path d="M292 16v8M292 56v8M268 40h8M308 40h8M274 22l6 6M304 52l6 6M274 58l6-6M304 28l6-6" stroke="#F5A791" stroke-width="2" stroke-linecap="round"/>
+        <path d="M24 128V96h22V78h16v26h24V70h18v22h24V60h18v50h30V84h20v44" stroke="#2A2A2A" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M196 128h144" stroke="#2A2A2A" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M292 128V104h42v24" stroke="#46C1D1" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M313 104V92" stroke="#46C1D1" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M0 140c50-10 80 10 130 0s80 10 130 0 70 6 100-2V170H0Z" fill="#46C1D1"/>
+        <path d="M0 154c46-6 78 6 130 0s84 6 136 0 70 2 94-2" stroke="#FAFAFA" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h1>St. Pete, for a day.</h1>
+      <p class="lede">A pocket to wander, not a schedule.</p>
+      <button type="button" class="btn btn-primary" id="begin">Start the day</button>
+    </section>
+
+    <section id="screen-curate" class="hidden">
+      <h1>Shape it a little.</h1>
+      <div class="group" data-group="feel">
+        <p>How the day feels</p>
+        <div class="pills">
+          <button type="button" data-value="mystery" aria-pressed="false">Mystery</button>
+          <button type="button" data-value="plan" aria-pressed="false">Just the plan</button>
+        </div>
+      </div>
+      <div class="group" data-group="drink">
+        <p>Drinking</p>
+        <div class="pills">
+          <button type="button" data-value="yes" aria-pressed="false">Yes</button>
+          <button type="button" data-value="no" aria-pressed="false">No</button>
+          <button type="button" data-value="either" aria-pressed="false">Doesn't matter</button>
+        </div>
+      </div>
+      <div class="group" data-group="lean">
+        <p>What to lean toward</p>
+        <div class="pills">
+          <button type="button" data-value="must" aria-pressed="false">Must-sees</button>
+          <button type="button" data-value="gems" aria-pressed="false">Hidden gems</button>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" id="build" disabled>Build my day</button>
     </section>
 
     <section id="screen-moods" class="hidden">
       <h1>What’s calling?</h1>
-      <div class="moods">
+      <p class="note hidden" id="mood-drink"></p>
+      <div class="moods" id="mood-list">
         <button type="button" data-mood="morning">A slow morning</button>
         <button type="button" data-mood="dig">Something to dig through</button>
         <button type="button" data-mood="sweet">Something sweet</button>
       </div>
-      <button type="button" class="quiet" id="show-list">Just show me</button>
+      <div class="escapes">
+        <button type="button" class="quiet" id="show-list">Just show me</button>
+        <button type="button" class="quiet" id="mood-back">Change the day</button>
+      </div>
     </section>
 
     <section id="screen-pocket" class="hidden">
       <h1 id="pocket-title"></h1>
       <p class="note hidden" id="pocket-note"></p>
       <div id="pocket-stops"></div>
-      <button type="button" class="quiet" id="back-moods">A different mood</button>
+      <button type="button" class="quiet solo-quiet" id="back-moods">A different mood</button>
     </section>
 
     <section id="screen-list" class="hidden">
       <h1>Around today</h1>
+      <p class="note hidden" id="list-note"></p>
       <div id="list-stops"></div>
-      <button type="button" class="quiet" id="list-back">Back</button>
+      <button type="button" class="quiet solo-quiet" id="list-back">Back</button>
     </section>
   </div>
 
@@ -221,13 +303,15 @@
       }
     };
 
-    var KEY = "city-day-hidden";
+    var HIDE_KEY = "city-day-hidden";
+    var CHOICE_KEY = "city-day-choices";
     var screen = "door";
     var moodId = null;
+    var listReturn = "moods";
 
     function hiddenIds() {
       try {
-        var raw = JSON.parse(sessionStorage.getItem(KEY) || "[]");
+        var raw = JSON.parse(sessionStorage.getItem(HIDE_KEY) || "[]");
         return Array.isArray(raw) ? raw : [];
       } catch (e) {
         return [];
@@ -237,12 +321,67 @@
     function hideId(id) {
       var ids = hiddenIds();
       if (ids.indexOf(id) === -1) ids.push(id);
-      sessionStorage.setItem(KEY, JSON.stringify(ids));
+      sessionStorage.setItem(HIDE_KEY, JSON.stringify(ids));
     }
 
     function visible(ids) {
       var hidden = hiddenIds();
       return ids.filter(function (id) { return hidden.indexOf(id) === -1; });
+    }
+
+    function loadChoices() {
+      try {
+        var raw = JSON.parse(sessionStorage.getItem(CHOICE_KEY) || "{}");
+        return raw && typeof raw === "object" ? raw : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveChoices(c) {
+      sessionStorage.setItem(CHOICE_KEY, JSON.stringify(c));
+    }
+
+    function readPills() {
+      var c = {};
+      document.querySelectorAll(".group").forEach(function (g) {
+        var on = g.querySelector('[aria-pressed="true"]');
+        if (on) c[g.getAttribute("data-group")] = on.getAttribute("data-value");
+      });
+      return c;
+    }
+
+    function applyPills(c) {
+      document.querySelectorAll(".group").forEach(function (g) {
+        var key = g.getAttribute("data-group");
+        g.querySelectorAll("[data-value]").forEach(function (btn) {
+          btn.setAttribute("aria-pressed", btn.getAttribute("data-value") === c[key] ? "true" : "false");
+        });
+      });
+      document.getElementById("build").disabled = !(c.feel && c.drink && c.lean);
+    }
+
+    function drinkLine() {
+      return loadChoices().drink === "no" ? "No drinks on this one." : "";
+    }
+
+    function leanLine() {
+      return loadChoices().lean === "gems"
+        ? "ARTpool first, then the market."
+        : "The market first.";
+    }
+
+    function moodOrder() {
+      return loadChoices().lean === "gems"
+        ? ["dig", "morning", "sweet"]
+        : ["morning", "dig", "sweet"];
+    }
+
+    function dayOrder() {
+      var head = loadChoices().lean === "gems"
+        ? ["artpool", "market"]
+        : ["market", "artpool"];
+      return head.concat(["ofkors", "fresco", "gelatogo"]);
     }
 
     function esc(s) {
@@ -279,43 +418,89 @@
       return ids.map(function (id) { return stopHtml(id, primary); }).join("");
     }
 
+    function setNote(el, text) {
+      if (text) {
+        el.textContent = text;
+        el.classList.remove("hidden");
+      } else {
+        el.textContent = "";
+        el.classList.add("hidden");
+      }
+    }
+
     function show(name) {
       screen = name;
-      ["door", "moods", "pocket", "list"].forEach(function (s) {
+      ["door", "curate", "moods", "pocket", "list"].forEach(function (s) {
         document.getElementById("screen-" + s).classList.toggle("hidden", s !== name);
       });
       window.scrollTo(0, 0);
+    }
+
+    function renderMoods() {
+      var box = document.getElementById("mood-list");
+      moodOrder().forEach(function (id) {
+        var btn = box.querySelector('[data-mood="' + id + '"]');
+        if (btn) box.appendChild(btn);
+      });
+      setNote(document.getElementById("mood-drink"), drinkLine());
     }
 
     function renderPocket() {
       var mood = MOODS[moodId];
       var ids = visible(mood.ids);
       document.getElementById("pocket-title").textContent = mood.title;
-      var note = document.getElementById("pocket-note");
-      if (mood.note && ids.length) {
-        note.textContent = mood.note;
-        note.classList.remove("hidden");
-      } else {
-        note.textContent = "";
-        note.classList.add("hidden");
-      }
+      var bits = [];
+      if (mood.note && ids.length) bits.push(mood.note);
+      if (ids.length && drinkLine()) bits.push(drinkLine());
+      setNote(document.getElementById("pocket-note"), bits.join(" "));
       document.getElementById("pocket-stops").innerHTML = stopsHtml(ids);
     }
 
     function renderList() {
-      var ids = visible(["market", "artpool", "ofkors", "fresco", "gelatogo"]);
+      var ids = visible(dayOrder());
+      var bits = [];
+      if (ids.length) bits.push(leanLine());
+      if (drinkLine()) bits.push(drinkLine());
+      setNote(document.getElementById("list-note"), bits.join(" "));
       document.getElementById("list-stops").innerHTML = ids.length
         ? stopsHtml(ids)
         : '<p class="why">That’s everything we had.</p>';
     }
 
     function render() {
+      if (screen === "moods") renderMoods();
       if (screen === "pocket") renderPocket();
       if (screen === "list") renderList();
     }
 
     document.getElementById("begin").addEventListener("click", function () {
-      show("moods");
+      applyPills(loadChoices());
+      show("curate");
+    });
+
+    document.querySelectorAll(".pills button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        btn.parentNode.querySelectorAll("[data-value]").forEach(function (b) {
+          b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+        });
+        var c = readPills();
+        saveChoices(c);
+        document.getElementById("build").disabled = !(c.feel && c.drink && c.lean);
+      });
+    });
+
+    document.getElementById("build").addEventListener("click", function () {
+      var c = readPills();
+      if (!(c.feel && c.drink && c.lean)) return;
+      saveChoices(c);
+      if (c.feel === "plan") {
+        listReturn = "curate";
+        renderList();
+        show("list");
+      } else {
+        renderMoods();
+        show("moods");
+      }
     });
 
     document.querySelectorAll("[data-mood]").forEach(function (btn) {
@@ -327,16 +512,25 @@
     });
 
     document.getElementById("show-list").addEventListener("click", function () {
+      listReturn = "moods";
       renderList();
       show("list");
     });
 
+    document.getElementById("mood-back").addEventListener("click", function () {
+      applyPills(loadChoices());
+      show("curate");
+    });
+
     document.getElementById("back-moods").addEventListener("click", function () {
+      renderMoods();
       show("moods");
     });
 
     document.getElementById("list-back").addEventListener("click", function () {
-      show("moods");
+      if (listReturn === "curate") applyPills(loadChoices());
+      else renderMoods();
+      show(listReturn);
     });
 
     document.body.addEventListener("click", function (e) {
