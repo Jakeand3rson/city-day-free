@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#FAFAFA" />
+  <meta name="description" content="A pocket of St. Petersburg and Sarasota. Pick a mood, get directions, wander." />
+  <title>City Day</title>
+  <style>
+    :root {
+      --bg: #FAFAFA;
+      --ink: #2A2A2A;
+      --cyan: #46C1D1;
+      --peach: #F5A791;
+      --red: #EE3124;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.45;
+      padding: 1.5rem 1.35rem 3rem;
+      -webkit-font-smoothing: antialiased;
+    }
+    .shell { max-width: 26rem; margin: 0 auto; }
+    h1 {
+      font-size: clamp(2.15rem, 9vw, 2.85rem);
+      font-weight: 600;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      margin: 0 0 1.75rem;
+    }
+    h1::after {
+      content: "";
+      display: block;
+      width: 2.25rem;
+      height: 3px;
+      margin-top: 1.05rem;
+      border-radius: 99px;
+      background: var(--peach);
+    }
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin: 0 0 0.35rem;
+    }
+    p { margin: 0; }
+    .mark {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+    .why { margin: 0 0 0.45rem; }
+    .meta {
+      opacity: 0.62;
+      font-size: 0.92rem;
+      margin: 0 0 0.2rem;
+    }
+    .note {
+      margin: -0.85rem 0 1.35rem;
+      max-width: 18rem;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 1rem 1.2rem;
+      font: inherit;
+      font-weight: 650;
+      font-size: 1rem;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--red); color: var(--bg); }
+    .btn-ink { background: var(--ink); color: var(--bg); }
+    .moods { display: grid; gap: 0.7rem; }
+    .moods button {
+      text-align: left;
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+      border-radius: 1.05rem;
+      padding: 1.05rem 1.15rem;
+      font: inherit;
+      font-weight: 600;
+      font-size: 1.05rem;
+      cursor: pointer;
+    }
+    .moods button:active { background: rgba(70, 193, 209, 0.16); }
+    .stop {
+      padding: 0 0 1.35rem;
+      margin: 0 0 1.35rem;
+      border-bottom: 1px solid rgba(42, 42, 42, 0.12);
+    }
+    .stop .btn { margin-top: 0.95rem; }
+    .skip, .quiet {
+      background: none;
+      border: none;
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+      padding: 0;
+    }
+    .skip {
+      display: block;
+      margin: 0.85rem auto 0;
+      opacity: 0.55;
+      font-size: 0.92rem;
+      text-decoration: underline;
+      text-underline-offset: 0.22em;
+    }
+    .quiet {
+      display: block;
+      margin: 2rem auto 0;
+      opacity: 0.5;
+      font-size: 0.95rem;
+      text-decoration: underline;
+      text-underline-offset: 0.25em;
+    }
+    #screen-door {
+      min-height: calc(100svh - 4.5rem);
+      display: flex;
+      flex-direction: column;
+    }
+    #screen-door h1 { margin-top: auto; }
+    .hidden { display: none !important; }
+    :focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section id="screen-door">
+      <p class="mark" aria-hidden="true"></p>
+      <h1>A pocket of the city.</h1>
+      <button type="button" class="btn btn-primary" id="begin">Begin</button>
+    </section>
+
+    <section id="screen-moods" class="hidden">
+      <h1>What’s calling?</h1>
+      <div class="moods">
+        <button type="button" data-mood="morning">A slow morning</button>
+        <button type="button" data-mood="dig">Something to dig through</button>
+        <button type="button" data-mood="sweet">Something sweet</button>
+      </div>
+      <button type="button" class="quiet" id="show-list">Just show me</button>
+    </section>
+
+    <section id="screen-pocket" class="hidden">
+      <h1 id="pocket-title"></h1>
+      <p class="note hidden" id="pocket-note"></p>
+      <div id="pocket-stops"></div>
+      <button type="button" class="quiet" id="back-moods">A different mood</button>
+    </section>
+
+    <section id="screen-list" class="hidden">
+      <h1>Around today</h1>
+      <div id="list-stops"></div>
+      <button type="button" class="quiet" id="list-back">Back</button>
+    </section>
+  </div>
+
+  <script>
+    var PLACES = {
+      market: {
+        name: "Saturday Morning Market",
+        why: "Stalls, music, and a slow start to the day.",
+        hours: "Sat 9am–2pm",
+        address: "100 1st Ave SE, St. Petersburg",
+        query: "Saturday Morning Market, 100 1st Ave SE, St. Petersburg"
+      },
+      artpool: {
+        name: "ARTpool",
+        why: "Vintage clothing and records.",
+        hours: "Sat 12–5",
+        address: "2030 Central Ave, St. Petersburg",
+        also: "Also 2000 Central Ave.",
+        query: "ARTpool, 2030 Central Ave, St. Petersburg"
+      },
+      ofkors: {
+        name: "ofKors Bakery",
+        why: "Crepes and pastry.",
+        hours: "Sat until 10pm",
+        address: "1359 Main St, Sarasota",
+        query: "ofKors Bakery, 1359 Main St, Sarasota"
+      },
+      fresco: {
+        name: "Fresco Gelato and Coffee",
+        why: "Gelato and coffee.",
+        hours: "Until 10pm",
+        address: "1536 Main St, Sarasota",
+        query: "Fresco Gelato and Coffee, 1536 Main St, Sarasota"
+      },
+      gelatogo: {
+        name: "Gelato-go",
+        why: "Italian gelato.",
+        hours: "Until 9:30pm",
+        address: "14 S Orange Ave, Sarasota",
+        query: "Gelato-go, 14 S Orange Ave, Sarasota"
+      }
+    };
+
+    var MOODS = {
+      morning: { title: "A slow morning", ids: ["market"], note: "" },
+      dig: { title: "Something to dig through", ids: ["artpool"], note: "" },
+      sweet: {
+        title: "Something sweet",
+        ids: ["ofkors", "fresco", "gelatogo"],
+        note: "A short drive from downtown St. Pete."
+      }
+    };
+
+    var KEY = "city-day-hidden";
+    var screen = "door";
+    var moodId = null;
+
+    function hiddenIds() {
+      try {
+        var raw = JSON.parse(sessionStorage.getItem(KEY) || "[]");
+        return Array.isArray(raw) ? raw : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function hideId(id) {
+      var ids = hiddenIds();
+      if (ids.indexOf(id) === -1) ids.push(id);
+      sessionStorage.setItem(KEY, JSON.stringify(ids));
+    }
+
+    function visible(ids) {
+      var hidden = hiddenIds();
+      return ids.filter(function (id) { return hidden.indexOf(id) === -1; });
+    }
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+
+    function mapsUrl(query) {
+      return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query);
+    }
+
+    function stopHtml(id, primary) {
+      var p = PLACES[id];
+      var go = primary ? "btn btn-primary" : "btn btn-ink";
+      return (
+        '<article class="stop">' +
+          "<h2>" + esc(p.name) + "</h2>" +
+          '<p class="why">' + esc(p.why) + "</p>" +
+          '<p class="meta">' + esc(p.hours) + "</p>" +
+          '<p class="meta">' + esc(p.address) + "</p>" +
+          (p.also ? '<p class="meta">' + esc(p.also) + "</p>" : "") +
+          '<a class="' + go + '" href="' + esc(mapsUrl(p.query)) + '" target="_blank" rel="noopener">Get directions</a>' +
+          '<button type="button" class="skip" data-skip="' + esc(id) + '">Not for us</button>' +
+        "</article>"
+      );
+    }
+
+    function stopsHtml(ids) {
+      if (!ids.length) {
+        return '<p class="why">Nothing left in this pocket.</p>';
+      }
+      var primary = ids.length === 1;
+      return ids.map(function (id) { return stopHtml(id, primary); }).join("");
+    }
+
+    function show(name) {
+      screen = name;
+      ["door", "moods", "pocket", "list"].forEach(function (s) {
+        document.getElementById("screen-" + s).classList.toggle("hidden", s !== name);
+      });
+      window.scrollTo(0, 0);
+    }
+
+    function renderPocket() {
+      var mood = MOODS[moodId];
+      var ids = visible(mood.ids);
+      document.getElementById("pocket-title").textContent = mood.title;
+      var note = document.getElementById("pocket-note");
+      if (mood.note && ids.length) {
+        note.textContent = mood.note;
+        note.classList.remove("hidden");
+      } else {
+        note.textContent = "";
+        note.classList.add("hidden");
+      }
+      document.getElementById("pocket-stops").innerHTML = stopsHtml(ids);
+    }
+
+    function renderList() {
+      var ids = visible(["market", "artpool", "ofkors", "fresco", "gelatogo"]);
+      document.getElementById("list-stops").innerHTML = ids.length
+        ? stopsHtml(ids)
+        : '<p class="why">That’s everything we had.</p>';
+    }
+
+    function render() {
+      if (screen === "pocket") renderPocket();
+      if (screen === "list") renderList();
+    }
+
+    document.getElementById("begin").addEventListener("click", function () {
+      show("moods");
+    });
+
+    document.querySelectorAll("[data-mood]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        moodId = btn.getAttribute("data-mood");
+        renderPocket();
+        show("pocket");
+      });
+    });
+
+    document.getElementById("show-list").addEventListener("click", function () {
+      renderList();
+      show("list");
+    });
+
+    document.getElementById("back-moods").addEventListener("click", function () {
+      show("moods");
+    });
+
+    document.getElementById("list-back").addEventListener("click", function () {
+      show("moods");
+    });
+
+    document.body.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-skip]");
+      if (!btn) return;
+      hideId(btn.getAttribute("data-skip"));
+      render();
+    });
+  </script>
+</body>
+</html>
